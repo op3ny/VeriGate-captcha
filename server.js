@@ -245,36 +245,23 @@ async function recordSuspiciousActivity(ipAddress, activityType, details = '') {
 
     const timeframe = `-${ACTIVITY_TIMEFRAME_MINUTES} minutes`;
 
-    const suspiciousTimeRow = await dbGet(
-        "SELECT COUNT(*) as count FROM ip_activity WHERE ip_address = ? AND activity_type = ? AND timestamp > datetime('now', ?)"
-        , [normalizedIp, 'fail_time', timeframe]
+    const countsRow = await dbGet(
+        `SELECT 
+            SUM(CASE WHEN activity_type = 'fail_time' THEN 1 ELSE 0 END) as suspicious_time_count,
+            SUM(CASE WHEN activity_type = 'fail_wrong' THEN 1 ELSE 0 END) as failed_attempts_count,
+            SUM(CASE WHEN activity_type = 'excessive_generate' THEN 1 ELSE 0 END) as excessive_generate_count,
+            SUM(CASE WHEN activity_type = 'login_fail' THEN 1 ELSE 0 END) as login_failed_count,
+            SUM(CASE WHEN activity_type = 'excessive_requests' THEN 1 ELSE 0 END) as excessive_requests_count
+         FROM ip_activity 
+         WHERE ip_address = ? AND timestamp > datetime('now', ?)`,
+        [normalizedIp, timeframe]
     );
 
-    const failedAttemptsRow = await dbGet(
-        "SELECT COUNT(*) as count FROM ip_activity WHERE ip_address = ? AND activity_type = ? AND timestamp > datetime('now', ?)"
-        , [normalizedIp, 'fail_wrong', timeframe]
-    );
-
-    const excessiveGenerateRow = await dbGet(
-        "SELECT COUNT(*) as count FROM ip_activity WHERE ip_address = ? AND activity_type = ? AND timestamp > datetime('now', ?)"
-        , [normalizedIp, 'excessive_generate', timeframe]
-    );
-
-    const loginFailedRow = await dbGet(
-        "SELECT COUNT(*) as count FROM ip_activity WHERE ip_address = ? AND activity_type = ? AND timestamp > datetime('now', ?)"
-        , [normalizedIp, 'login_fail', timeframe]
-    );
-
-    const excessiveRequestsRow = await dbGet(
-        "SELECT COUNT(*) as count FROM ip_activity WHERE ip_address = ? AND activity_type = ? AND timestamp > datetime('now', ?)"
-        , [normalizedIp, 'excessive_requests', timeframe]
-    );
-
-    const suspiciousTimeCount = suspiciousTimeRow ? suspiciousTimeRow.count : 0;
-    const failedAttemptsCount = failedAttemptsRow ? failedAttemptsRow.count : 0;
-    const excessiveGenerateCount = excessiveGenerateRow ? excessiveGenerateRow.count : 0;
-    const loginFailedCount = loginFailedRow ? loginFailedRow.count : 0;
-    const excessiveRequestsCount = excessiveRequestsRow ? excessiveRequestsRow.count : 0;
+    const suspiciousTimeCount = countsRow?.suspicious_time_count || 0;
+    const failedAttemptsCount = countsRow?.failed_attempts_count || 0;
+    const excessiveGenerateCount = countsRow?.excessive_generate_count || 0;
+    const loginFailedCount = countsRow?.login_failed_count || 0;
+    const excessiveRequestsCount = countsRow?.excessive_requests_count || 0;
 
     let banReason = null;
     if (suspiciousTimeCount >= SUSPICIOUS_TIME_THRESHOLD_COUNT) {
