@@ -65,6 +65,8 @@ Caso contrário, instale manualmente o que for usado no `server.js`.
 
 ## 3️⃣ Iniciar o servidor
 
+- ALTERE AS LINHAS 15/16 do arquivo server.js
+
 ```bash
 node server.js
 ```
@@ -256,6 +258,8 @@ O VeriGate implementa:
 ## 🪜 Passo a passo
 
 ### 1️⃣ Subir o servidor VeriGate
+
+- ALTERE AS LINHAS 15/16 do arquivo server.js
 
 ```bash
 node server.js
