@@ -173,7 +173,7 @@ Quando o usuário enviar um formulário ou acessar um endpoint protegido:
 ```js
 import fetch from "node-fetch";
 
-const response = await fetch("https://verigate-server/verify", {
+const response = await fetch("https://verigate-server/captcha/verify", {
     method: "POST",
     headers: {
         "Content-Type": "application/json"
@@ -220,7 +220,7 @@ Tokens normalmente:
 Exemplo típico:
 
 ```
-POST /verify
+POST /captcha/verify
 ```
 
 Recebe:
